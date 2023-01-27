@@ -9,9 +9,10 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import fs from 'fs';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
@@ -25,10 +26,41 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+ipcMain.handle('save-config', (event: Event, key: string) => {
+  console.log('Main save: ', key);
+  // eslint-disable-next-line promise/catch-or-return
+  dialog
+    .showSaveDialog(mainWindow, {
+      title: 'Save config',
+      defaultPath: path.join(
+        process.env.HOME || process.env.USERPROFILE,
+        'config.json'
+      ),
+      filters: [
+        {
+          name: 'JSON',
+          extensions: ['json'],
+        },
+      ],
+    })
+    .then((result) => {
+      if (result.canceled) {
+        return 'Save Cancelled';
+      }
+      const filePath = result.filePath;
+      console.log('Save to: ', filePath);
+      try {
+        fs.writeFileSync(
+          filePath,
+          JSON.stringify(JSON.parse(key), null, 2),
+          'utf-8'
+        );
+        return 'Saved';
+      } catch (e) {
+        console.log('Failed to save the file !');
+        return 'Failed to save the file !';
+      }
+    });
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -68,6 +100,8 @@ const createWindow = async () => {
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
   };
+
+  const HOME = process.env.HOME || process.env.USERPROFILE;
 
   mainWindow = new BrowserWindow({
     show: false,

@@ -1,27 +1,28 @@
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
-export type Channels = 'ipc-example';
+export type Channels = 'utm-builder';
+export type Events =
+  | 'get-config'
+  | 'get-params'
+  | 'save-config'
+  | 'check-passwd';
 
-const electronHandler = {
-  ipcRenderer: {
-    sendMessage(channel: Channels, args: unknown[]) {
-      ipcRenderer.send(channel, args);
-    },
-    on(channel: Channels, func: (...args: unknown[]) => void) {
-      const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
-        func(...args);
-      ipcRenderer.on(channel, subscription);
-
-      return () => {
-        ipcRenderer.removeListener(channel, subscription);
-      };
-    },
-    once(channel: Channels, func: (...args: unknown[]) => void) {
-      ipcRenderer.once(channel, (_event, ...args) => func(...args));
-    },
-  },
+export type electronAPI = {
+  saveConfig: (key: string) => Promise<string>;
 };
 
-contextBridge.exposeInMainWorld('electron', electronHandler);
+contextBridge.exposeInMainWorld('electronAPI', {
+  saveConfig: (key: string) => {
+    return ipcRenderer.invoke('save-config', key);
+  },
+});
 
-export type ElectronHandler = typeof electronHandler;
+// Path: src/main/preload.ts
+
+declare global {
+  interface Window {
+    electronAPI: {
+      saveConfig: (key: string) => Promise<string>;
+    };
+  }
+}

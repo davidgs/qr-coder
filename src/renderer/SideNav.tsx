@@ -23,7 +23,7 @@
 import './hyde.css';
 import { useState, useEffect } from 'react';
 import { Form, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
-// import StarTree from '../../assets/images/ST_Logo_WhiteYellow.svg';
+import icon from '../../assets/images/profile-pic.png';
 
 export default function SideNav({
   showConfig,
@@ -47,13 +47,13 @@ export default function SideNav({
         <a
           href="https://startree.ai/"
           target="_blank"
-          rel="utm_builder noreferrer"
+          rel="qr_config noreferrer"
         >
-          {/* <img src={StarTree} alt="StarTree Logo" /> */}
+          <img src={icon} alt="David G. Simmons" width="80px" height="80px" />
         </a>
         <div className="container sidebar-sticky">
           <div className="sidebar-about">
-            <p className="lead">A Content Referral Link Generator</p>
+            <p className="lead">A QR Code Styler</p>
             <p className="lead">Brought to you by</p>
             <p>
               <a href="mailto:davidgs@davidgs.com">David G. Simmons</a>

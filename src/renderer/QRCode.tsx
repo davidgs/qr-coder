@@ -43,6 +43,7 @@ export default function QCode({
   topLeft,
   bottomLeft,
   forceUpdate,
+  showQRLogo,
 }: {
   QRProps: IProps;
   ext: string;
@@ -50,6 +51,7 @@ export default function QCode({
   topLeft: number[];
   bottomLeft: number[];
   forceUpdate: boolean;
+  showQRLogo: boolean;
 }) {
   const [copied, setCopied] = useState<boolean>(false);
   const [imageProps, setImageProps] = useState<IProps>({} as IProps);
@@ -59,6 +61,7 @@ export default function QCode({
   const [myBottomLeft, setBottomLeft] = useState<number[]>(bottomLeft);
   const [show, setShow] = useState<boolean>(false);
   const [myQCode, setQrCode] = useState<QRCode>(null);
+  const [showLogo, setShowLogo] = useState<boolean>(showQRLogo);
   const ref = useRef(null);
 
   const onExtensionChange = (event: SyntheticEvent) => {
@@ -66,6 +69,10 @@ export default function QCode({
     setFileExt(ev?.id);
   };
 
+  useEffect(() => {
+    console.log('image props changed');
+    setShowLogo(showQRLogo);
+  }, [showQRLogo]);
   // const qrCode = new QRCode({
   //   ...imageProps,
   //   eyeRadius: [myTopLeft, myTopRight, myBottomLeft],
@@ -89,11 +96,6 @@ export default function QCode({
     setTopRight(er[1]);
     setTopLeft(er[0]);
     setBottomLeft(er[2]);
-    setQrCode(
-      new QRCode({
-        ...imageProps,
-      })
-    );
   }, [QRProps, topRight, topLeft, bottomLeft]);
 
   useEffect(() => {
@@ -145,7 +147,7 @@ export default function QCode({
     <div>
       <div className="alert-columns">
         <div className="alert-column1">
-          {/* {copied && (
+          {copied && (
             <OverlayTrigger
               delay={{ show: 250, hide: 400 }}
               rootClose
@@ -187,10 +189,10 @@ export default function QCode({
                 title="Click to copy your link!"
               />
             </OverlayTrigger>
-          )} */}
+          )}
         </div>
         <div className="alert-column2">
-          {/* <OverlayTrigger
+          <OverlayTrigger
             placement="auto"
             delay={{ show: 250, hide: 400 }}
             rootClose
@@ -206,39 +208,55 @@ export default function QCode({
                 {imageProps.value}{' '}
               </strong>
             </div>
-          </OverlayTrigger> */}
+          </OverlayTrigger>
         </div>
         <div className="alert-column3">
           <Row>
-            <div>
-              {myQCode?.render}
-              {/* <QRCode
-                id="react-qrcode-logo"
-                value={imageProps.value || ''}
-                ecLevel={imageProps.ecLevel || 'L'}
-                size={imageProps.size || 200}
-                quietZone={imageProps.quietZone || 0}
-                enableCORS={imageProps.enableCORS || true}
-                bgColor={imageProps.bgColor || '#FFFFFF'}
-                fgColor={imageProps.fgColor || '#000000'}
-                logoImage={imageProps.logoImage || ''}
-                logoWidth={imageProps.logoWidth || 100}
-                logoHeight={imageProps.logoHeight || 100}
-                logoOpacity={imageProps.logoOpacity || 10}
-                removeQrCodeBehindLogo={
-                  imageProps.removeQrCodeBehindLogo || false
-                }
-                qrStyle={imageProps.qrStyle || 'squares'}
-                eyeColor={imageProps.eyeColor || '#000000'}
-                eyeRadius={[
-                  myTopLeft, // top/left eye
-                  myTopRight, // top/right eye
-                  myBottomLeft, // bottom/left
-                ]}
-              /> */}
-            </div>
+            <OverlayTrigger
+              placement="auto"
+              delay={{ show: 250, hide: 400 }}
+              rootClose
+              overlay={
+                <Tooltip id="alert-tooltip">
+                  Click here to download your QR Code!
+                </Tooltip>
+              }
+            >
+              <div
+                ref={ref}
+                onClick={onDownloadClick}
+                // onKeyDown={onDownloadClick}
+                role="button"
+                tabIndex={1}
+              >
+                <QRCode
+                  id="react-qrcode-logo"
+                  value={imageProps.value || ''}
+                  ecLevel={imageProps.ecLevel || 'L'}
+                  size={imageProps.size || 200}
+                  quietZone={imageProps.quietZone || 0}
+                  enableCORS={imageProps.enableCORS || true}
+                  bgColor={imageProps.bgColor || '#FFFFFF'}
+                  fgColor={imageProps.fgColor || '#000000'}
+                  logoImage={showLogo ? imageProps.logoImage || '' : ''}
+                  logoWidth={imageProps.logoWidth || 100}
+                  logoHeight={imageProps.logoHeight || 100}
+                  logoOpacity={imageProps.logoOpacity || 10}
+                  removeQrCodeBehindLogo={
+                    imageProps.removeQrCodeBehindLogo || false
+                  }
+                  qrStyle={imageProps.qrStyle || 'squares'}
+                  eyeColor={imageProps.eyeColor || '#000000'}
+                  eyeRadius={[
+                    myTopLeft, // top/left eye
+                    myTopRight, // top/right eye
+                    myBottomLeft, // bottom/left
+                  ]}
+                />
+              </div>
+            </OverlayTrigger>
           </Row>
-          {/* <Row>
+          <Row>
             <Col sm="6">
               <OverlayTrigger
                 placement="auto"
@@ -259,10 +277,10 @@ export default function QCode({
                   </Dropdown.Item>
                   <Dropdown.Item
                     style={{ color: '#000000' }}
-                    id="jpeg"
+                    id="jpg"
                     onClick={onExtensionChange}
                   >
-                    JPEG
+                    JPG
                   </Dropdown.Item>
                 </DropdownButton>
               </OverlayTrigger>
@@ -277,7 +295,7 @@ export default function QCode({
                 </Button>
               </OverlayTrigger>
             </Col>
-          </Row> */}
+          </Row>
         </div>
       </div>
     </div>

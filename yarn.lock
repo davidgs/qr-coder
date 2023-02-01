@@ -7595,6 +7595,11 @@ ora@^5.1.0:
     strip-ansi "^6.0.0"
     wcwidth "^1.0.1"
 
+original-fs@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/original-fs/-/original-fs-1.2.0.tgz#ea6c5117ee71fe6a9f809130de0590676370b5e8"
+  integrity sha512-IGo+qFumpIV65oDchJrqL0BOk9kr82fObnTesNJt8t3YgP6vfqcmRs0ofPzg3D9PKMeBHt7lrg1k/6L+oFdS8g==
+
 p-cancelable@^2.0.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/p-cancelable/-/p-cancelable-2.1.1.tgz#aab7fbd416582fa32a3db49859c122487c5ed2cf"

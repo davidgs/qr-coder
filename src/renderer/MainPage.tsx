@@ -21,28 +21,26 @@
  * SOFTWARE.
  */
 import './hyde.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, SyntheticEvent } from 'react';
 import {
   FloatingLabel,
   Form,
   Col,
   Row,
   Accordion,
-  Card,
   OverlayTrigger,
   Tooltip,
   Button,
 } from 'react-bootstrap';
 import RangeSlider from 'react-bootstrap-range-slider';
-import { IProps, CornerRadii, InnerOuterEyeColor } from 'react-qrcode-logo';
+import { IProps } from 'react-qrcode-logo';
 import { SketchPicker } from 'react-color';
 import QCode from './QRCode';
 import SideNav from './SideNav';
 import MainHeader from './MainHeader';
 import SquareAdjust from './components/SquareAdjust';
-import icon from '../../assets/images/startree_logo-mark_fill-lightning-4.png';
+import icon from '../../assets/images/profile-pic.png';
 import NumberSpinner from './components/NumberSpinner';
-import { electron } from 'process';
 
 export default function MainPage() {
   const [editConfig, setEditConfig] = useState(false);
@@ -53,16 +51,16 @@ export default function MainPage() {
     quietZone: 0,
     enableCORS: true,
     bgColor: '#FFFFFF',
-    fgColor: '#1F3A56',
+    fgColor: '#68248B',
     logoImage: icon,
-    logoWidth: 100,
-    logoHeight: 100,
+    logoWidth: 40,
+    logoHeight: 40,
     logoOpacity: 10,
     removeQrCodeBehindLogo: false,
     qrStyle: 'dots',
-    eyeColor: '#1F3A56',
+    eyeColor: '#68248B',
     eyeRadius: [
-      [30, 0, 30, 30], // top/left eye
+      [30, 30, 0, 30], // top/left eye
       [30, 30, 30, 0], // top/right eye
       [30, 0, 30, 30], // bottom/left
     ],
@@ -81,12 +79,59 @@ export default function MainPage() {
     setIsLocked(!isLocked);
   };
 
+  const [logoImage, setLogoImage] = useState(myProps.logoImage);
+  const [showLogo, setShowLogo] = useState(false);
+
+
+  const loadConfiguration = () => {
+    const dialogConfig = {
+      properties: ['openFile'],
+      filters: [
+        {
+          name: 'JSON',
+          extensions: ['json'],
+        },
+      ],
+    };
+    window.electronAPI
+      .openDialog(JSON.stringify(dialogConfig))
+      // eslint-disable-next-line promise/always-return
+      .then((result) => {
+        const fName = result.filePaths[0];
+        window.electronAPI
+          .readFile(fName)
+          .then((response) => {
+            const config = JSON.parse(response);
+            setMyProps({
+              ...myProps,
+              ...config,
+            });
+            return '';
+          })
+          .catch((error: unknown) => {
+            console.log(`Error: ${error}`);
+            return '';
+          });
+      })
+      .catch((error: unknown) => {
+        console.log(`Error: ${error}`);
+      });
+  };
+  const setFileName = (result: SyntheticEvent) => {
+    const read = new FileReader();
+    read.readAsDataURL(result.target.files[0]);
+    read.onloadend = () => {
+      setMyProps({
+        ...myProps,
+        logoImage: read.result as string,
+      });
+    };
+  };
+
   const saveConfiguration = () => {
-    console.log('saveConfiguration: ', myProps);
     window.electronAPI
       .saveConfig(JSON.stringify(myProps))
       .then((response: string) => {
-        console.log(`Response: ${response}`);
         return '';
       })
       .catch((error: unknown) => {
@@ -119,7 +164,6 @@ export default function MainPage() {
     </svg>
   );
   const updateTopLeftEye = (val: number[]) => {
-    console.log('updateTopLeftEye: ', val);
     setTopLeftEye(val);
     setMyProps({
       ...myProps,
@@ -129,7 +173,6 @@ export default function MainPage() {
   };
 
   const updateTopRightEye = (val: number[]) => {
-    console.log('updateTopRightEye: ', val);
     setTopRightEye(val);
     setMyProps({
       ...myProps,
@@ -139,7 +182,6 @@ export default function MainPage() {
   };
 
   const updateBottomLeftEye = (val: number[]) => {
-    console.log('updateBottomLeftEye: ', val);
     setBottomLeftEye(val);
     setMyProps({
       ...myProps,
@@ -147,13 +189,6 @@ export default function MainPage() {
     });
     setForceUpdate(!forceUpdate);
   };
-
-  // useEffect(() => {
-  //   console.log('topLeftEye changed: ', topLeftEye);
-  //   const newProps = { ...myProps };
-  //   newProps.eyeRadius = [topLeftEye, topRightEye, bottomLeftEye];
-  //   setMyProps(newProps);
-  // }, [topLeftEye, topRightEye, bottomLeftEye]);
 
   // Foreground Color
   const [foreColor, setForeColor] = useState({
@@ -232,7 +267,6 @@ export default function MainPage() {
 
   // Update the link/data
   const updateLink = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.value);
     setMyProps({ ...myProps, value: event.target.value });
   };
 
@@ -296,7 +330,6 @@ export default function MainPage() {
     event: React.ChangeEvent<HTMLInputElement>,
     setting: string
   ) => {
-    console.log('Logo Size: ', event.target.value);
     if (isLocked) {
       setMyProps({
         ...myProps,
@@ -326,11 +359,12 @@ export default function MainPage() {
         <div>
           <QCode
             QRProps={myProps}
-            ext="PNG"
+            ext="png"
             topRight={topRightEye}
             topLeft={topLeftEye}
             bottomLeft={bottomLeftEye}
             forceUpdate={forceUpdate}
+            showQRLogo={showLogo}
           />
         </div>
         <p />
@@ -355,7 +389,7 @@ export default function MainPage() {
                   </Col>
                   <Col lg="2">
                     <Form.Control
-                      defaultValue={myProps.size}
+                      value={myProps.size}
                       onChange={(e) => {
                         setMyProps({
                           ...myProps,
@@ -597,28 +631,44 @@ export default function MainPage() {
             <Accordion.Item eventKey="6">
               <Accordion.Header>QR Code Logo Settings</Accordion.Header>
               <Accordion.Body id="6">
-                {/* Logo */}
-                {/* <Form.Group as={Row}>
-                  <Col lg="4">
-                    <Form.Label>Logo</Form.Label>
+                <Row>
+                  <Col sm={8}>
+                    <Form.Group controlId="formFile" className="mb-3">
+                      <Form.Label>Choose Image</Form.Label>
+                      <Form.Control
+                        type="file"
+                        onChange={setFileName}
+                        accept=".png,.jpg,.jpeg"
+                      />
+                    </Form.Group>
                   </Col>
-                  <Col lg="6">
-                    <Form.Select
-                      aria-label="Default select example"
+                  {showLogo ? (<Col sm={4}>
+                     <img
+                      src={myProps.logoImage}
+                      alt="logo"
+                      style={{ width: '100px', height: '100px' }}
+                    />
+                  </Col>) : null}
+                </Row>
+                <Form.Group as={Row}>
+                  <Col lg="2">
+                    <Form.Label>Show Logo</Form.Label>
+                  </Col>
+                  <Col lg="2">
+                    <Form.Check
+                      type="switch"
+                      id="custom-switch"
+                      label=""
+                      checked={showLogo}
                       onChange={(e) => {
-                        const logo = e.target.value;
-                        setMyProps({
-                          ...myProps,
-                          logo: logo,
-                        });
+                        setLogoImage(e.target.checked ? myProps.logoImage : '');
+                        setShowLogo(e.target.checked);
                       }}
-                    >
-                      <option value="none">None</option>
-                      <option value="logo">Logo</option>
-                    </Form.Select>
+                    />
                   </Col>
-                </Form.Group> */}
-                {/* Logo Size */}
+                  <Col lg="8" />
+                </Form.Group>
+
                 <Form.Group as={Row}>
                   <Col lg="2">
                     <Form.Label>Logo Height</Form.Label>
@@ -630,6 +680,7 @@ export default function MainPage() {
                       onChange={(e) => {
                         updateAspectRatio(e, 'logoWidth');
                       }}
+                      enabled={showLogo}
                     />
                   </Col>
                   <Col lg="6">
@@ -640,6 +691,7 @@ export default function MainPage() {
                       onChange={(e) => {
                         updateAspectRatio(e, 'logoHeight');
                       }}
+                      enabled={showLogo}
                     />
                   </Col>
                 </Form.Group>
@@ -654,6 +706,7 @@ export default function MainPage() {
                         variant="outline-secondary"
                         style={{ width: '20%' }}
                         onClick={setLockAspectRatio}
+                        enabled={showLogo}
                       >
                         {isLocked ? locked : unlocked}
                       </Button>
@@ -668,6 +721,7 @@ export default function MainPage() {
                     <Form.Control
                       defaultValue={myProps.logoWidth}
                       value={myProps.logoWidth}
+                      enabled={showLogo}
                       onChange={(e) => {
                         updateAspectRatio(e, 'logoWidth');
                       }}
@@ -678,6 +732,7 @@ export default function MainPage() {
                       value={myProps.logoWidth}
                       min={50}
                       max={300}
+                      enabled={showLogo}
                       onChange={(e) => {
                         updateAspectRatio(e, 'logoWidth');
                       }}
@@ -694,6 +749,7 @@ export default function MainPage() {
                       value={myProps.logoOpacity * 10}
                       min={0}
                       max={10}
+                      enabled={showLogo}
                       onChange={(e) => {
                         setMyProps({
                           ...myProps,
@@ -714,6 +770,7 @@ export default function MainPage() {
                       id="custom-switch"
                       label=""
                       checked={myProps.removeQrCodeBehindLogo}
+                      enabled={showLogo}
                       onChange={(e) => {
                         setMyProps({
                           ...myProps,
@@ -729,24 +786,35 @@ export default function MainPage() {
         </div>{' '}
         {/* End of QR Code Settings */}
         <p />
-        <div
-          style={{
-            alignContent: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Button
-            variant="primary"
-            value="Save Configuration"
-            onClick={saveConfiguration}
-          >
-            Save Configuration
-          </Button>
-        </div>
+
+          <Row>
+            <Col sm={2} />
+            <Col sm={4}>
+              <Button
+                variant="success"
+                size="sm"
+                value="Load Configuration"
+                onClick={loadConfiguration}
+              >
+                Load File
+              </Button>
+            </Col>
+            <Col sm={4}>
+              <Button
+                variant="success"
+                value="Save Configuration"
+                size="sm"
+                onClick={saveConfiguration}
+              >
+                Save File
+              </Button>
+            </Col>
+            <Col sm={2} />
+          </Row>
+          <p />
+          {/* <Button variant="primary" value="Get Image" onClick={getNewImage}>
+            Get Image
+          </Button> */}
       </div>
     </div>
   );

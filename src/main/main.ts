@@ -26,6 +26,24 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
+ipcMain.handle('open-dialog', (event: Event, key: string) => {
+  console.log('Main open: ', key);
+  // eslint-disable-next-line promise/catch-or-return
+  return dialog.showOpenDialog(mainWindow, {
+    title: 'Open config',
+    defaultPath: path.join(
+      process.env.HOME || process.env.USERPROFILE,
+      'config.json'
+    ),
+    filters: [
+      {
+        name: 'JSON',
+        extensions: ['json'],
+      },
+    ],
+  });
+});
+
 ipcMain.handle('save-config', (event: Event, key: string) => {
   console.log('Main save: ', key);
   // eslint-disable-next-line promise/catch-or-return
@@ -47,7 +65,7 @@ ipcMain.handle('save-config', (event: Event, key: string) => {
       if (result.canceled) {
         return 'Save Cancelled';
       }
-      const filePath = result.filePath;
+      const { filePath } = result;
       console.log('Save to: ', filePath);
       try {
         fs.writeFileSync(
@@ -61,6 +79,11 @@ ipcMain.handle('save-config', (event: Event, key: string) => {
         return 'Failed to save the file !';
       }
     });
+});
+
+ipcMain.handle('read-file', (event: Event, key: string) => {
+  console.log('Main read: ', key);
+  return fs.readFileSync(key, 'utf-8');
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -100,8 +123,17 @@ const createWindow = async () => {
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
   };
-
-  const HOME = process.env.HOME || process.env.USERPROFILE;
+  const options = {
+    applicationName: 'QR Code Builder',
+    applicationVersion: 'v0.6.0',
+    copyright: '© 2023',
+    version: 'b1025',
+    credits: 'Credits:\n\t• David G. Simmons\n\t• Electron React Boilerplate',
+    authors: ['David G. Simmons'],
+    website: 'https://github.com/davidgs/qr-coder',
+    iconPath: getAssetPath('icon.png'),
+  };
+  app.setAboutPanelOptions(options);
 
   mainWindow = new BrowserWindow({
     show: false,

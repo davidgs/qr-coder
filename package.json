@@ -108,12 +108,12 @@
     }
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.3",
     "electron-debug": "^3.2.0",
     "electron-log": "^4.4.8",
     "electron-updater": "^5.2.3",
     "fs": "^0.0.1-security",
-    "original-fs": "^1.2.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.0",
     "react-bootstrap-icons": "^1.10.2",
@@ -154,7 +154,7 @@
     "electronmon": "^2.0.2",
     "eslint": "^8.22.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-erb": "^4.0.3",
+    "eslint-config-erb": "^4.0.4",
     "eslint-import-resolver-typescript": "^3.4.1",
     "eslint-import-resolver-webpack": "^0.13.2",
     "eslint-plugin-compat": "^4.0.2",
